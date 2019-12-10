@@ -16,7 +16,9 @@ import android.view.ViewTreeObserver;
 import com.rachitgoyal.segmentedprogressbar.R;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by rachitgoyal on 8/30/16.
@@ -35,7 +37,7 @@ public class SegmentedProgressBar extends View {
 	private float dividerWidth = 1;
 	private boolean isDividerEnabled = true;
 	private int divisions = 1;
-	private List<Integer> enabledDivisions = new ArrayList<>();
+	private Map<Paint, List<Integer>> enabledDivisions = new HashMap<>();
 	private List<Float> dividerPositions;
 	private float cornerRadius = 2f;
 
@@ -119,29 +121,31 @@ public class SegmentedProgressBar extends View {
 
 			canvas.drawRoundRect(bgRect, cornerRadius, cornerRadius, progressBarBackgroundPaint);
 
-			for (Integer enabledDivision : enabledDivisions) {
-				if (enabledDivision < divisions) {
-					float left = 0;
-					if (enabledDivision != 0) {
-						left = dividerPositions.get(enabledDivision - 1) + dividerWidth;
-					}
-					float right = enabledDivision >= dividerPositions.size() ? progressBarWidth : dividerPositions.get(enabledDivision);
+			for (Paint currentDivisionPaint : enabledDivisions.keySet()) {
+				for (Integer currentDivision : enabledDivisions.get(currentDivisionPaint)) {
+					if (currentDivision < divisions) {
+						float left = 0;
+						if (currentDivision != 0) {
+							left = dividerPositions.get(currentDivision - 1) + dividerWidth;
+						}
+						float right = currentDivision >= dividerPositions.size() ? progressBarWidth : dividerPositions.get(currentDivision);
 
-					RectF rect = new RectF(left, 0, right, getHeight());
-					canvas.drawRoundRect(rect, cornerRadius, cornerRadius, progressBarPaint);
-					if (enabledDivision == 0) {
-						canvas.drawRect(left + cornerRadius, 0, right, getHeight(), progressBarPaint);
-					} else if (enabledDivision == divisions - 1) {
-						canvas.drawRect(left, 0, right - cornerRadius, getHeight(), progressBarPaint);
-					} else {
-						canvas.drawRect(rect, progressBarPaint);
+						RectF rect = new RectF(left, 0, right, getHeight());
+						canvas.drawRoundRect(rect, cornerRadius, cornerRadius, currentDivisionPaint);
+						if (currentDivision == 0) {
+							canvas.drawRect(left + cornerRadius, 0, right, getHeight(), currentDivisionPaint);
+						} else if (currentDivision == divisions - 1) {
+							canvas.drawRect(left, 0, right - cornerRadius, getHeight(), currentDivisionPaint);
+						} else {
+							canvas.drawRect(rect, currentDivisionPaint);
+						}
 					}
-				}
 
-				if (divisions > 1 && isDividerEnabled) {
-					for (int i = 1; i < divisions; i++) {
-						float leftPosition = dividerPositions.get(i - 1);
-						canvas.drawRect(leftPosition, 0, leftPosition + dividerWidth, getHeight(), dividerPaint);
+					if (divisions > 1 && isDividerEnabled) {
+						for (int i = 1; i < divisions; i++) {
+							float leftPosition = dividerPositions.get(i - 1);
+							canvas.drawRect(leftPosition, 0, leftPosition + dividerWidth, getHeight(), dividerPaint);
+						}
 					}
 				}
 			}
@@ -168,6 +172,7 @@ public class SegmentedProgressBar extends View {
 	 *
 	 * @param color
 	 */
+	@Deprecated
 	public void setProgressBarColor(int color) {
 		progressBarPaint.setColor(color);
 	}
@@ -228,7 +233,7 @@ public class SegmentedProgressBar extends View {
 	 *
 	 * @param enabledDivisions number of divisions to be enabled
 	 */
-	public void setEnabledDivisions(List<Integer> enabledDivisions) {
+	public void setEnabledDivisions(Map<Paint, List<Integer>> enabledDivisions) {
 		this.enabledDivisions = enabledDivisions;
 		updateProgress();
 	}
